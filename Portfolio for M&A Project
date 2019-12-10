@@ -1,0 +1,35 @@
+class Stock:
+  def __init__(self, stock_id, weight):
+    self.stock_id = stock_id
+    self.weight = weight
+
+def initialize(context):
+    #context.aapl = sid(24)
+    
+    context.stocks = [Stock(sid(8572),0.15), Stock(sid(1335), 0.02), Stock(sid(24), .15), Stock(sid(3806), .15), Stock(sid(16841), .1159), Stock(sid(2190),0.043), Stock(sid(8151), 0.02), Stock(sid(7800), .15), Stock(sid(32146), .15), Stock(sid(1406), .051)]
+    
+    
+    schedule_function(ma_crossover_handling, date_rules.every_day(), time_rules.market_open(hours=1))
+    
+def ma_crossover_handling(context, data):
+    
+    for stock in context.stocks:
+        
+        # stock:: Stock
+        # stock.stock_id
+          
+        hist = data.history(stock.stock_id ,'price', 200, '1d')
+        sma_200 = hist.mean()
+        sma_50 = hist[-50:].mean()
+
+        open_orders = get_open_orders()
+
+        if sma_50 > sma_200:
+            if stock.stock_id not in open_orders:
+                order_target_percent(stock.stock_id, stock.weight)
+
+        elif sma_200 > sma_50:
+             if stock not in open_orders:
+                order_target_percent(stock.stock_id, 0.0)
+        
+        record(leverage = context.account.leverage)
