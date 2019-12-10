@@ -1,0 +1,35 @@
+import quantopian.algorithm as algo
+from quantopian.pipeline import Pipeline
+from quantopian.pipeline.data.builtin import USEquityPricing
+from quantopian.pipeline.filters import QTradableStocksUS
+
+
+def initialize(context):
+    context.security_list=symbols('AGN','C','AAPL','BIIB','AMZN','DIS','WFC','UNP','MA','CELG')
+    schedule_function(my_rebalance, date_rules.every_day(),time_rules.market_open(hours=1))
+    schedule_function(my_record_vars, date_rules.every_day(),time_rules.market_close())
+    
+def my_assign_weights(context,data):
+    weights=[0.4568,0.1219,0.0807,0.0624,0.0551,0.0509,0.0441,0.0424,0.0426,0.0433]
+    return weights
+
+def my_rebalance(context, data):
+   
+    #Execute orders according to our schedule_function() timing.
+   
+    weights= my_assign_weights(context,data)
+    i=0
+    for security in context.security_list:
+        if data.can_trade(security):
+            order_target_percent(security,weights[i])
+            i=i+1
+    value= context.portfolio.portfolio_value
+    print value
+
+def my_record_vars(context, data):
+   
+    #Plot variables at the end of each day.
+ 
+    initial_wealth= 10000000
+    profit=context.portfolio.portfolio_value-initial_wealth
+    record(MinvarPort=profit,zero_line=0)
